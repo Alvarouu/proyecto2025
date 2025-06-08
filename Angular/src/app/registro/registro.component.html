@@ -1,0 +1,78 @@
+<form class="needs-validation" #form="ngForm" novalidate>
+
+  <div class="card shadow p-4 mb-4 rounded-4">
+    <h4 class="mb-4">Registro de Usuario</h4>
+
+    <!-- Nombre -->
+    <div class="mb-3">
+      <label class="form-label">Nombre <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" name="nombre" [(ngModel)]="userObj.nombre" #fname="ngModel" required>
+      <div class="text-danger small mt-1" *ngIf="fname.invalid && (fname.touched || fname.dirty)">
+        <span *ngIf="fname.errors?.['required']">Este campo es obligatorio</span>
+      </div>
+    </div>
+
+    <!-- Primer Apellido -->
+    <div class="mb-3">
+      <label class="form-label">Primer apellido <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" name="apellido1" [(ngModel)]="userObj.apellido1" #apellido1="ngModel" required>
+      <div class="text-danger small mt-1" *ngIf="apellido1.invalid && (apellido1.touched || apellido1.dirty)">
+        <span *ngIf="apellido1.errors?.['required']">Este campo es obligatorio</span>
+      </div>
+    </div>
+
+    <!-- Segundo Apellido -->
+    <div class="mb-3">
+      <label class="form-label">Segundo apellido <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" name="apellido2" [(ngModel)]="userObj.apellido2" #apellido2="ngModel" required>
+      <div class="text-danger small mt-1" *ngIf="apellido2.invalid && (apellido2.touched || apellido2.dirty)">
+        <span *ngIf="apellido2.errors?.['required']">Este campo es obligatorio</span>
+      </div>
+    </div>
+
+    <!-- Tipo de Usuario -->
+    <div class="mb-3">
+      <label class="form-label">Tipo de usuario <span class="text-danger">*</span></label>
+      <select class="form-select" name="tipoUsuario" [(ngModel)]="userObj.esAdmin" required>
+        <option [ngValue]="false">Profesor</option>
+        <option [ngValue]="true">Equipo Directivo</option>
+      </select>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="mb-3">
+      <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+      <input type="password" class="form-control" name="contrasenia" [(ngModel)]="userObj.contrasenia"
+             #contrasenia="ngModel" required minlength="9">
+      <div class="text-danger small mt-1" *ngIf="contrasenia.invalid && (contrasenia.touched || contrasenia.dirty)">
+        <span *ngIf="contrasenia.errors?.['required']">Este campo es obligatorio</span>
+        <span *ngIf="contrasenia.errors?.['minlength']">Debe tener al menos 9 caracteres</span>
+      </div>
+    </div>
+
+    <!-- Confirmar Contraseña -->
+    <div class="mb-3">
+      <label class="form-label">Repite la contraseña <span class="text-danger">*</span></label>
+      <input type="password" class="form-control" name="confirmarContrasenia" [(ngModel)]="userObj.confirmarContrasenia"
+             #repContrasenia="ngModel" required minlength="9">
+      <div class="text-danger small mt-1" *ngIf="repContrasenia.invalid && (repContrasenia.touched || repContrasenia.dirty)">
+        <span *ngIf="repContrasenia.errors?.['required']">Este campo es obligatorio</span>
+        <span *ngIf="repContrasenia.errors?.['minlength']">Debe tener al menos 9 caracteres</span>
+      </div>
+      <div class="text-danger small mt-1"
+           *ngIf="userObj.contrasenia && userObj.confirmarContrasenia && userObj.contrasenia !== userObj.confirmarContrasenia">
+        Las contraseñas no coinciden.
+      </div>
+    </div>
+
+    <!-- Botón -->
+    <div class="d-grid justify-content-center ">
+      <button class="btn btn-primary btn-custom-green" type="submit"
+              [disabled]="form.invalid || (userObj.contrasenia && userObj.confirmarContrasenia && userObj.contrasenia !== userObj.confirmarContrasenia)"
+              (click)="onSave()">
+        Confirmar
+      </button>
+    </div>
+
+  </div>
+</form>

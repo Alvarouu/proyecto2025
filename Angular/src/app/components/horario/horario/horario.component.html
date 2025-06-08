@@ -1,0 +1,68 @@
+<h2 class="text-center my-4">Mi Horario</h2>
+
+<!-- Contenedor con ancho limitado y centrado -->
+<div class="d-flex flex-wrap align-items-end gap-4 justify-content-center mb-4 mx-auto" style="max-width: 1000px;">
+
+  <!-- Botón principal -->
+  <div>
+    <button class="btn btn-primary btn-lg" (click)="verSemana()">
+      Ver clases de esta semana
+    </button>
+  </div>
+
+  <!-- Select Curso -->
+  <div style="min-width: 200px; flex: 1 1 200px;">
+    <label for="cursoSelect" class="form-label fw-bold mb-1">Seleccionar Curso:</label>
+    <select id="cursoSelect" class="form-select" [(ngModel)]="selectedCursoId" (change)="onCursoChange()">
+      <option value="">-- Selecciona un curso --</option>
+      <option *ngFor="let curso of cursos" [value]="curso.id">{{ curso.nombre }}</option>
+    </select>
+  </div>
+
+  <!-- Select Aula -->
+  <div style="min-width: 200px; flex: 1 1 200px;">
+    <label for="aulaSelect" class="form-label fw-bold mb-1">Seleccionar Aula:</label>
+    <select id="aulaSelect" class="form-select" [(ngModel)]="selectedAulaId" (change)="onAulaChange()">
+      <option value="">-- Selecciona un aula --</option>
+      <option *ngFor="let aula of aulas" [value]="aula.id">{{ aula.nombre }}</option>
+    </select>
+  </div>
+
+</div>
+
+<div *ngIf="clasesSemana.length > 0">
+  <h3>Clases de esta semana:</h3>
+  <ul>
+    <li *ngFor="let clase of clasesSemana">
+      {{ clase.fecha }} - Franja {{ clase.franja }}: {{ clase.asignatura }} ({{ clase.curso }}) en {{ clase.aula }}
+    </li>
+  </ul>
+</div>
+<div *ngIf="horario.length > 0; else sinHorario" class="container">
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Franja Horaria-Hora</th>
+        <th>Fecha</th>
+        <th>Día</th>
+        <th>Asignatura</th>
+        <th>Curso</th>
+        <th>Aula</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of horario">
+        <td>{{ item.franja }} -- {{item.hora}}</td>
+        <td>{{item.fecha}}</td>
+        <td>{{ item.dia }}</td>
+        <td>{{ item.asignatura }}</td>
+        <td>{{ item.curso }}</td>
+        <td>{{ item.aula }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<ng-template #sinHorario>
+  <p class="text-center text-muted">No tienes horarios asignados.</p>
+</ng-template>

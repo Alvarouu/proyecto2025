@@ -1,0 +1,25 @@
+<div class="container mt-4">
+    <h2>Mi Perfil</h2>
+  
+    <div *ngIf="usuario; else cargando">
+      <ul class="list-group">
+        <li class="list-group-item"><strong>Nombre:</strong> {{ usuario.nombre }}</li>
+        <li class="list-group-item"><strong>Primer Apellido:</strong> {{ usuario.apellido1 }}</li>
+        <li class="list-group-item"><strong>Segundo Apellido:</strong> {{ usuario.apellido2 }}</li>
+        <li class="list-group-item"><strong>Correo:</strong> {{ usuario.correo }}</li>
+      </ul>
+    </div>
+
+    <button class="btn btn-warning mt-3" (click)="mostrarFormulario = !mostrarFormulario">
+      Cambiar contraseña
+    </button>
+    <div *ngIf="mostrarFormulario" class="mt-3">
+      <input type="password" class="form-control mb-2" placeholder="Nueva contraseña" [(ngModel)]="nuevaContrasenia">
+      <button class="btn btn-success" (click)="cambiarContrasenia()">Confirmar cambio</button>
+    </div>
+  
+    <ng-template #cargando>
+      <div class="alert alert-info">Cargando perfil...</div>
+    </ng-template>
+  </div>
+  

@@ -1,0 +1,45 @@
+<h2 class="text-center my-4">Ausencias</h2>
+<div *ngIf="ausencia.length > 0; else sinHorario" class="container">
+  <table class="table table-striped table-bordered" id="IdTable">
+    <thead class="table-dark text-center">
+      <tr>
+        <th>Id Ausencia</th>
+        <th>Fecha</th>
+        <th class="columnaBotones">Comentario</th>
+        <th>Nombre Profesor</th>
+        <th>Estado</th>
+        <th class="columnaBotones">Modificar Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of ausencia">
+        <td>{{ item.idAusencia }}</td>
+        <td>{{item.fecha}}</td>
+        <td class="columnaBotones">{{ item.comentario }}</td>
+        <td>{{item.profesor_name}} {{item.profesor_ape1}} {{item.profesor_ape2}}</td>
+        <td *ngIf="!item.justificada">
+            No Justificada
+        </td>
+        <td *ngIf="item.justificada">
+            Justificada
+        </td>
+        <td class="columnaBotones">
+            <button class="btn-custom-green" (click)="justificar(item.idAusencia)"  *ngIf="!item.justificada" style="background-color:green; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                Justificar
+            </button>
+        
+            <button class="btn-custom-red" (click)="noJustificar(item.idAusencia)" *ngIf="item.justificada" style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                No justificar
+            </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <button (click)="downloadPDF()" style="background-color:grey; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                Descargar PDF
+            </button>
+</div>
+
+<ng-template #sinHorario>
+  <p class="text-center text-muted">No hay ausencias disponibles.</p>
+</ng-template>

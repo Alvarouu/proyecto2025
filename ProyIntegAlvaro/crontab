@@ -1,0 +1,2 @@
+# cronjob (en misma carpeta que cron.Dockerfile)
+0 8 * * 1-5 cd /app && python manage.py notificar_ausencias >> /var/log/cron.log 2>&1

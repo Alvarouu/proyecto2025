@@ -1,0 +1,29 @@
+<form (ngSubmit)="registrarAusencia()" class="ausencia-form" [formGroup]="form">
+  <div class="form-group">
+    <label for="horario">📚 Selecciona el horario:</label>
+    <select
+      id="horario"
+      formControlName="horario"
+      name="idHorario"
+      class="form-control"
+      required
+    >
+    <option *ngFor="let horario of horarios" [value]="horario.idHorario">
+      {{ 'Franja ' + horario.franja }} - {{horario.asignatura}} - {{horario.fecha}}
+    </option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="comentario">📝 Comentario:</label>
+    <textarea
+      id="comentario"
+      formControlName="comentario"
+      name="comentario"
+      rows="4"
+      placeholder="Motivo de la ausencia..."
+    ></textarea>
+  </div>
+
+  <button class="btn-custom-green" type="submit">✅ Enviar</button>
+</form>
