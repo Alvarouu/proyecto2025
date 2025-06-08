@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: ./ProyIntegAlvaro
+    container_name: django-backend
+    volumes:
+      - ./ProyIntegAlvaro:/app
+    ports:
+      - "9000:9000"  # Django accesible en localhost:9000
+    depends_on:
+      - db
+    environment:
+      - DEBUG=True
+      - DJANGO_ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://myuser:mypass@db:5432/mydb
+    networks:
+      - did-network
+
+  frontend:
+    build:
+      context: ./Angular
+    container_name: angular-frontend
+    ports:
+      - "9001:80"  # Angular accesible en localhost:9001
+    depends_on:
+      - backend
+    networks:
+      - did-network
+
+  db:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - did-network
+
+volumes:
+  postgres_data:
+
+networks:
+  did-network:
