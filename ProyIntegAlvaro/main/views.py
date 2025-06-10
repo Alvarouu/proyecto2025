@@ -1,3 +1,4 @@
+import json
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from google.auth.transport import requests
@@ -5,8 +6,6 @@ from google.oauth2 import id_token
 from rest_framework import permissions, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view, permission_classes, authentication_classes
-from rest_framework.mixins import (UpdateModelMixin, CreateModelMixin,
-                                   RetrieveModelMixin, DestroyModelMixin, ListModelMixin)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +18,15 @@ from rest_framework.authtoken.models import Token
 from main.models import Profesor
 from django.http import JsonResponse
 from datetime import date, timedelta
+from django.core.mail import EmailMessage
+from django.http import JsonResponse
+from main.models import Ausencia, Horario, Profesor
+from datetime import date
+from io import BytesIO
+from xhtml2pdf import pisa
+from django.utils import timezone
+import datetime
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -240,6 +248,7 @@ def clases_semana_actual(request):
             'dia': h.idDia.nombre,
             'franja': h.idFranja.numeroFranja,
             'fecha': h.fecha.strftime('%d/%m/%Y'),
+            'hora': h.idFranja.horaInicio.strftime('%H:%M')
         }
         for h in horarios
     ]
@@ -253,11 +262,10 @@ def clases_semana_actual(request):
 @permission_classes([IsAuthenticated])
 def registrar_ausencia(request):
     serializer = RegistrarAusenciaSerializer(data=request.data)
-    if serializer.is_valid():
 
+    if serializer.is_valid():
         idhorario = serializer.validated_data['idHorario']
-        comentario = serializer.validated_data['comentario']
-        fecha = Horario.objects.get(idHorario=idhorario).fecha
+        comentario = serializer.validated_data.get('comentario', '')
 
         try:
             profesor = Profesor.objects.get(idUser=request.user)
@@ -268,11 +276,19 @@ def registrar_ausencia(request):
         try:
             horario = Horario.objects.get(idHorario=idhorario)
         except Horario.DoesNotExist:
-            return Response({'error': 'Horario no encontrado o no pertenece al profesor'},
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'Horario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Crear la ausencia
-        ausencia = Ausencia.objects.create(comentario=comentario, fecha=fecha, horario=horario, profesor=profesor)
+        # Usamos la fecha del horario o fallback a hoy
+        fecha_ausencia = horario.fecha if horario.fecha else timezone.now().date()
+
+        # Crear la ausencia y asignar idFranja desde el horario
+        ausencia = Ausencia.objects.create(
+            profesor=profesor,
+            horario=horario,
+            fecha=fecha_ausencia,
+            comentario=comentario,
+            idFranja=horario.idFranja  # ← Aquí asignamos idFranja desde el horario seleccionado
+        )
 
         return Response(AusenciaSerializer(ausencia).data, status=status.HTTP_201_CREATED)
 
@@ -383,4 +399,159 @@ def horarios_por_curso(request, curso_id):
     return Response(serializer.data)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def enviar_informe_ausencias(request):
+    user = request.user
 
+    try:
+        profesor_destino = Profesor.objects.get(idUser=user)
+    except Profesor.DoesNotExist:
+        return JsonResponse({'error': 'No se encontró al profesor asociado al usuario.'}, status=404)
+
+    hoy = timezone.now().date()
+
+    # Buscar ausencias de hoy
+    ausencias_del_dia = Ausencia.objects.filter(fecha=hoy)
+
+    if not ausencias_del_dia.exists():
+        return JsonResponse({'mensaje': 'No hay ausencias hoy.'}, status=204)
+
+    datos_ausencias = []
+    datos_guardias = []
+
+    for ausencia in ausencias_del_dia:
+        id_franja = ausencia.idFranja
+
+        if not id_franja:
+            continue  # Saltamos si no tiene franja horaria
+
+        horarios_profesor = Horario.objects.filter(
+            idProfesor=ausencia.profesor,
+            idFranja=id_franja,
+            fecha=hoy
+        )
+
+        for horario in horarios_profesor:
+            guardias = Horario.objects.filter(
+                idFranja=id_franja,
+                fecha=hoy,
+                esGuardia=True
+            ).exclude(idProfesor=ausencia.profesor)
+
+            datos_ausencias.append({
+                'profesor': f"{ausencia.profesor.nombre} {ausencia.profesor.apellido1}",
+                'hora': id_franja.horaInicio.strftime('%H:%M') if id_franja.horaInicio else 'Sin hora',
+                'curso': horario.idCurso.nombre if horario.idCurso and horario.idCurso.nombre.strip() else 'Sin curso',
+                'aula': horario.idAula.nombre if horario.idAula and horario.idAula.nombre.strip() else 'Sin aula'
+            })
+
+            if guardias.exists():
+                datos_guardias.append({
+                    'profesor': f"{ausencia.profesor.nombre} {ausencia.profesor.apellido1}",
+                    'guardias': ', '.join(f"{g.idProfesor.nombre} {g.idProfesor.apellido1}" for g in guardias),
+                })
+            else:
+                datos_guardias.append({
+                    'profesor': f"{ausencia.profesor.nombre} {ausencia.profesor.apellido1}",
+                    'guardias': 'No hay guardias asignadas'
+                })
+
+    if not datos_ausencias:
+        return JsonResponse({'mensaje': 'No hay datos de ausencias para generar el informe.'}, status=204)
+
+    # Generar HTML
+    html = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; }}
+            h2 {{ text-align: center; color: #333; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+            th, td {{ padding: 10px; border: 1px solid #ccc; text-align: left; }}
+            th {{ background-color: #f2f2f2; color: #444; }}
+        </style>
+    </head>
+    <body>
+        <h2>Informe de Ausencias - {hoy.strftime('%d/%m/%Y')}</h2>
+        <p>Estimado/a {profesor_destino.nombre},</p>
+        <p>Se adjunta el informe de ausencias del día:</p>
+
+        <!-- Tabla 1: Datos de ausencias -->
+        <h3>Ausencias del Día</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Profesor Ausente</th>
+                    <th>Hora</th>
+                    <th>Curso</th>
+                    <th>Aula</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+
+    for item in datos_ausencias:
+        html += f"""
+                <tr>
+                    <td>{item['profesor']}</td>
+                    <td>{item['hora']}</td>
+                    <td>{item['curso']}</td>
+                    <td>{item['aula']}</td>
+                </tr>
+        """
+
+    html += """
+            </tbody>
+        </table>
+
+        <!-- Tabla 2: Guardias Asignadas -->
+        <h3>Guardias Asignadas</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Profesor Ausente</th>
+                    <th>Guardias</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+
+    for item in datos_guardias:
+        html += f"""
+                <tr>
+                    <td>{item['profesor']}</td>
+                    <td>{item['guardias']}</td>
+                </tr>
+        """
+
+    html += """
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    # Generar PDF
+    buffer = BytesIO()
+    pisa.CreatePDF(src=html, dest=buffer)
+    pdf = buffer.getvalue()
+    buffer.close()
+
+    if not pdf:
+        return JsonResponse({'error': 'El PDF está vacío.'}, status=500)
+
+    # Enviar correo
+    email = EmailMessage(
+        subject=f"Informe de Ausencias - {hoy.strftime('%d/%m/%Y')}",
+        body="Adjunto se encuentra el informe de ausencias del día.",
+        to=[profesor_destino.correo]
+    )
+    email.attach(f'InformeAusencias_{hoy}.pdf', pdf, 'application/pdf')
+
+    try:
+        email.send()
+        print("Correo enviado a:", profesor_destino.correo)
+        return JsonResponse({'mensaje': '📧 Correo enviado correctamente'})
+    except Exception as e:
+        return JsonResponse({'error': f'Error al enviar el correo: {str(e)}'}, status=500)

@@ -4,7 +4,14 @@ import { TokenService } from '../tokenStorage/token-service.service';
 import { Observable } from 'rxjs';
 import * as Constant from '../../constant'
 
-@Injectable({
+interface Horario {
+  idHorario: number;
+  fecha: string;
+  franja: number;
+  asignatura: string;
+}
+
+@Injectable({ 
   providedIn: 'root'
 })
 export class HorarioService {
@@ -20,14 +27,14 @@ export class HorarioService {
       'Authorization': `Token ${token}`
     });
   }
-
+  
   obtenerHorario() {
     const headers = this.getAuthHeaders();
     return this.http.get<any[]>(this.horarioUrl, { headers });
   }
 
-  getHorariosPorProfesor(idProfesor: number): Observable<any[]> {
-    return this.http.get<any[]>(this.horarioProfUrl + `${idProfesor}/`);
-  }
+getHorariosPorProfesor(idProfesor: number): Observable<Horario[]> {
+  return this.http.get<Horario[]>(this.horarioProfUrl + `${idProfesor}/`);
+}
 
 }

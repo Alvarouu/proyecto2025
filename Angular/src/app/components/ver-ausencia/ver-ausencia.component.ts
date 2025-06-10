@@ -80,4 +80,14 @@ export class VerAusenciaComponent {
     botones?.forEach(b=>b.classList.remove('hidden'))
   }
 
+  enviarPorCorreo(): void {
+  this.ausenciaService.enviarInformeAusencias().subscribe({
+    next: () => alert('📧 Informe enviado al correo del profesor.'),
+    error: err => {
+      console.error('Error al enviar el informe:', err);
+      alert('❌ Error al enviar el informe por correo.');
+    }
+  });
+}
+
 }

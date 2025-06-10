@@ -44,11 +44,14 @@ class HorarioSerializer(serializers.ModelSerializer):
         model = Horario
         fields = ['asignatura', 'curso', 'aula', 'dia', 'idHorario', 'franja', 'fecha', 'hora']
 
+class RegistrarAusenciaSerializer(serializers.Serializer):
+    idHorario = serializers.IntegerField()
+    comentario = serializers.CharField(required=False, allow_blank=True)
 
 class AusenciaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ausencia
-        fields = ['idAusencia', 'comentario', 'fecha']
+        fields = ['idAusencia', 'profesor', 'fecha', 'comentario', 'horario', 'idFranja']
 
 class RegistrarAusenciaSerializer(serializers.Serializer):
     comentario = serializers.CharField(allow_blank=True)

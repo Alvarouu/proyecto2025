@@ -34,7 +34,7 @@
   <h3>Clases de esta semana:</h3>
   <ul>
     <li *ngFor="let clase of clasesSemana">
-      {{ clase.fecha }} - Franja {{ clase.franja }}: {{ clase.asignatura }} ({{ clase.curso }}) en {{ clase.aula }}
+      {{ clase.fecha }} - Franja {{ clase.franja }} -- {{clase.hora}}: {{ clase.asignatura }} ({{ clase.curso }}) en {{ clase.aula }}
     </li>
   </ul>
 </div>

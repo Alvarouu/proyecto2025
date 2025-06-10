@@ -8,7 +8,7 @@ from main import views
 from main.views import Generico, Registro, login_view, logout_view, ProfesorViewSet, horario_profesor, \
     horarios_profesor_logueado, perfil_usuario, cambiar_contrasenia, clases_semana_actual, registrar_ausencia, \
     HorariosPorProfesorAPIView, consultar_ausencia, justificar, listar_cursos, \
-    listar_aulas, horarios_por_curso, horarios_por_aula, google_login_view
+    listar_aulas, horarios_por_curso, horarios_por_aula, google_login_view, enviar_informe_ausencias
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -41,6 +41,7 @@ urlpatterns = [
     path('horario/aula/<int:aula_id>/', horarios_por_aula, name='horarios_por_aula'),
     path('horario/curso/<int:curso_id>/', horarios_por_curso, name='horarios_por_curso'),
     path('loginG/', google_login_view, name='google_login_view'),
+    path('informe-ausencia/', enviar_informe_ausencias, name='informe-ausencia'),
 
 ]
 

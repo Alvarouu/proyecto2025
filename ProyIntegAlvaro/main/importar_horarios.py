@@ -1,5 +1,4 @@
 import os
-import random
 from datetime import date, timedelta, datetime, time
 from django.contrib.auth.models import User
 from main.models import Profesor, Asignatura, Cursos, Aulas, Dias, FranjaHoraria, Horario
@@ -13,15 +12,15 @@ weekday_map = {
     'Viernes': 4,
 }
 
-def primera_fecha_del_dia_escolar(nombre_dia):
+def fecha_del_dia_de_esta_semana(nombre_dia):
     weekday_deseado = weekday_map.get(nombre_dia)
     if weekday_deseado is None:
         raise ValueError(f"Día no válido: {nombre_dia}")
 
-    actual = date(2025, 9, 1)  # Inicio del curso
-    while actual.weekday() != weekday_deseado:
-        actual += timedelta(days=1)
-    return actual
+    hoy = date.today()
+    lunes_esta_semana = hoy - timedelta(days=hoy.weekday())  # lunes de esta semana
+    fecha_deseada = lunes_esta_semana + timedelta(days=weekday_deseado)
+    return fecha_deseada
 
 # Crear franjas horarias con hora de inicio
 franjas_definidas = [
@@ -53,8 +52,6 @@ for i, (descripcion, es_recreo) in enumerate(franjas_definidas, start=1):
 # Procesar archivo
 file_path = 'main/Datos_horarios.txt'
 dias_map = {'L': 'Lunes', 'M': 'Martes', 'X': 'Miércoles', 'J': 'Jueves', 'V': 'Viernes'}
-contador_repeticiones = {}
-fecha_fin_curso = date(2026, 6, 30)
 
 with open(file_path, 'r', encoding='utf-8') as f:
     for linea in f:
@@ -98,24 +95,7 @@ with open(file_path, 'r', encoding='utf-8') as f:
                 correo=correo, password=user.password, esAdmin=False, idUser=user
             )
 
-        # Obtener primera fecha válida para el día de la semana
-        fecha_base = primera_fecha_del_dia_escolar(dia_nombre)
-
-        # Clave única por día y franja
-        clave = (dia_nombre, int(franja_str))
-        contador_repeticiones.setdefault(clave, 0)
-
-        # Calcular fecha sumando semanas
-        while True:
-            semanas = contador_repeticiones[clave]
-            fecha_ordenada = fecha_base + timedelta(weeks=semanas)
-
-            if fecha_ordenada > fecha_fin_curso:
-                contador_repeticiones[clave] = 0
-                fecha_ordenada = fecha_base
-            else:
-                contador_repeticiones[clave] += 1
-                break
+        fecha_ordenada = fecha_del_dia_de_esta_semana(dia_nombre)
 
         horario_existente = Horario.objects.filter(
             idAsignatura=asignatura,

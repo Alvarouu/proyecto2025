@@ -1,2 +1,2 @@
 
-export const baseUrl: String= 'http://54.147.195.218:9001/'
+export const baseUrl: String= 'http://127.0.0.1:8000/'

@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { TokenService } from '../tokenStorage/token-service.service';
 import * as Constant from '../../constant'
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class AusenciaService {
   private registrarAusenciaUrl = Constant.baseUrl + 'registrar-ausencia/';
   private consultarAusenciaUrl =  Constant.baseUrl + 'consultar-ausencia/';
   private justificarAusenciaUrl =  Constant.baseUrl + 'justificar/';
-
+  private enviarInformeAusencia = Constant.baseUrl + 'informe-ausencia/'
   constructor(private http: HttpClient, private tokenService: TokenService) {}
 
   registrarAusencia(ausencia: any) {
@@ -22,6 +23,10 @@ export class AusenciaService {
 
     return this.http.post(this.registrarAusenciaUrl, ausencia, { headers });
   }
+
+  enviarInformeAusencias(): Observable<any> {
+  return this.http.post(this.enviarInformeAusencia, {});
+}
 
   traerAusencia(){
 
