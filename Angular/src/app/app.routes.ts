@@ -8,6 +8,7 @@ import { HorarioComponent } from './components/horario/horario/horario.component
 import { PerfilComponent } from './components/perfil/perfil/perfil.component';
 import { AusenciaComponent } from './components/ausencia/ausencia.component';
 import { VerAusenciaComponent } from './components/ver-ausencia/ver-ausencia.component';
+import {VerHorarioProfesorComponent} from './components/horario-admin/horario-admin.component'
 
 export const routes: Routes = [
     {
@@ -52,5 +53,9 @@ export const routes: Routes = [
     {
         path: 'consultaAusencia',
         component: VerAusenciaComponent
-    }
+    },
+        {
+        path: 'verHorariosCompleto',
+        component: VerHorarioProfesorComponent
+    },
 ];

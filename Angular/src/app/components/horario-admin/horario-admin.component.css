@@ -1,0 +1,30 @@
+.container {
+  max-width: 900px;
+}
+
+.table {
+  margin-top: 20px;
+}
+
+.table thead th {
+  vertical-align: middle;
+}
+
+.table td, .table th {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.alert {
+  margin-top: 10px;
+}
+
+.input-group {
+  max-width: 400px;
+  margin: auto;
+}
+
+.btn-primary[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

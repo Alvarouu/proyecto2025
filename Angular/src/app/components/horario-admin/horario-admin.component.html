@@ -1,0 +1,37 @@
+<div class="container mt-5">
+  <h3>🔍 Buscar horario por correo</h3>
+
+  <div class="form-group mb-3">
+    <input type="email" [(ngModel)]="correo" placeholder="Correo del profesor" class="form-control" />
+  </div>
+
+  <button class="btn btn-primary" (click)="buscarHorario()" [disabled]="loading">
+    {{ loading ? 'Cargando...' : 'Buscar Horario' }}
+  </button>
+
+  <div *ngIf="error" class="alert alert-danger mt-3">
+    {{ error }}
+  </div>
+
+  <div *ngIf="horario.length > 0" class="mt-4">
+    <h4>📅 Horario del Profesor</h4>
+    <table class="table table-bordered table-striped text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Día</th>
+          <th>Franja</th>
+          <th>Curso</th>
+          <th>Aula</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let h of horario">
+          <td>{{ h.dia || 'Sin día' }}</td>
+          <td>{{ h.franja || 'Sin franja' }}</td>
+          <td>{{ h.curso || 'Sin curso' }}</td>
+          <td>{{ h.aula || 'Sin aula' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

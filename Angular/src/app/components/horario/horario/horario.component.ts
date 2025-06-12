@@ -3,6 +3,7 @@ import { HorarioService } from '../../../services/horario/horario.service';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import * as Constant from '../../../constant'
 
 @Component({
   selector: 'app-horario',
@@ -19,6 +20,14 @@ export class HorarioComponent implements OnInit {
   selectedCursoId: number | null = null;
   selectedAulaId: number | null = null;
   constructor(private horarioService: HorarioService, private http: HttpClient) {}
+  private verSeman = Constant.baseUrl + 'horario/semana/'
+  private onCursoChang = Constant.baseUrl + 'horario/curso/'
+  private onAulaChang = Constant.baseUrl + 'horario/aula/'
+  private cargarCurso = Constant.baseUrl + 'horario/cursos/'
+  private cargarAula = Constant.baseUrl + 'horario/aulas/'
+  private verhoy = Constant.baseUrl + 'horario/hoy/'
+  
+
 
   ngOnInit(): void {
     this.cargarCursos();
@@ -35,7 +44,7 @@ export class HorarioComponent implements OnInit {
   }
   
   verSemana(): void {
-    this.http.get<any[]>('http://127.0.0.1:8000/horario/semana/').subscribe({
+    this.http.get<any[]>(this.verSeman).subscribe({
       next: (data: any[]) => {
         this.horario = Array.isArray(data) ? data : [];
       },
@@ -45,9 +54,20 @@ export class HorarioComponent implements OnInit {
     });
     }
 
+    verHoy(): void {
+    this.http.get<any[]>(this.verhoy).subscribe({
+      next: (data: any[]) => {
+        this.horario = Array.isArray(data) ? data : [];
+      },
+      error: (error: any) => {
+        console.error('Error al obtener clases de verHoy', error);
+      }
+    });
+    }
+
   onCursoChange(): void {
     if (this.selectedCursoId) {
-      this.http.get<any[]>(`http://127.0.0.1:8000/horario/curso/${this.selectedCursoId}/`).subscribe({
+      this.http.get<any[]>(this.onCursoChang + `${this.selectedCursoId}/`).subscribe({
         next: (data: any[]) => {
           this.horario = Array.isArray(data) ? data : [];
         },
@@ -61,7 +81,7 @@ export class HorarioComponent implements OnInit {
   // Filtrar por aula seleccionada
   onAulaChange(): void {
     if (this.selectedAulaId) {
-      this.http.get<any[]>(`http://127.0.0.1:8000/horario/aula/${this.selectedAulaId}/`).subscribe({
+      this.http.get<any[]>(this.onAulaChang + `${this.selectedAulaId}/`).subscribe({
         next: (data: any[]) => {
           this.horario = Array.isArray(data) ? data : [];
         },
@@ -74,7 +94,7 @@ export class HorarioComponent implements OnInit {
 
   // Cargar lista de cursos desde backend
   cargarCursos(): void {
-    this.http.get<any[]>('http://127.0.0.1:8000/horario/cursos/').subscribe({
+    this.http.get<any[]>(this.cargarCurso).subscribe({
       next: (data: any[]) => {
         this.cursos = data;
       },
@@ -86,7 +106,7 @@ export class HorarioComponent implements OnInit {
 
   // Cargar lista de aulas desde backend
   cargarAulas(): void {
-    this.http.get<any[]>('http://127.0.0.1:8000/horario/aulas/').subscribe({
+    this.http.get<any[]>(this.cargarAula).subscribe({
       next: (data: any[]) => {
         this.aulas = data;
       },

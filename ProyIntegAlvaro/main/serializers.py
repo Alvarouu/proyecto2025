@@ -71,3 +71,12 @@ class VerAusenciaSerializer(serializers.Serializer):
         fields = ['idAusencia', 'comentario', 'fecha', 'profesor_name', 'profesor_ape1', 'profesor_ape2', 'justificada']
 
 
+class VerHorarioSerializer(serializers.ModelSerializer):
+    dia = serializers.CharField(source='idDia.nombre', read_only=True)
+    franja = serializers.CharField(source='idFranja.descripcion', read_only=True)
+    curso = serializers.CharField(source='idCurso.nombre', read_only=True)
+    aula = serializers.CharField(source='idAula.nombre', read_only=True)
+
+    class Meta:
+        model = Horario
+        fields = ['dia', 'franja', 'curso', 'aula']

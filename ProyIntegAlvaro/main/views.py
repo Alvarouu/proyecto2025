@@ -1,6 +1,8 @@
 import json
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.db.models import F
+from django.shortcuts import get_object_or_404
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from rest_framework import permissions, viewsets
@@ -12,7 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from main.models import Horario, Ausencia, Cursos, Aulas
 from main.serializers import UserSerializer, ProfesorSerializer, HorarioSerializer, AusenciaSerializer, \
-    RegistrarAusenciaSerializer, VerAusenciaSerializer
+    RegistrarAusenciaSerializer, VerAusenciaSerializer, VerHorarioSerializer
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from main.models import Profesor
@@ -555,3 +557,68 @@ def enviar_informe_ausencias(request):
         return JsonResponse({'mensaje': '📧 Correo enviado correctamente'})
     except Exception as e:
         return JsonResponse({'error': f'Error al enviar el correo: {str(e)}'}, status=500)
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def ver_horario_profesor(request):
+    correo = request.GET.get('correo')
+
+    if not correo:
+        return Response({'error': 'Se requiere el correo del profesor.'}, status=400)
+
+    try:
+        profesor = Profesor.objects.get(correo=correo)
+    except Profesor.DoesNotExist:
+        return Response({'error': 'No se encontró al profesor con ese correo.'}, status=404)
+
+    # Buscar horarios del profesor y ordenar por día (Lunes = 1 ... Viernes = 5)
+    horarios = Horario.objects.filter(idProfesor=profesor).select_related(
+        'idDia', 'idFranja', 'idCurso', 'idAula'
+    ).annotate(dia_id=F('idDia__idDia')).order_by('dia_id', 'idFranja__numeroFranja')
+
+    if not horarios.exists():
+        return Response({'mensaje': 'El profesor no tiene horario asignado.'}, status=204)
+
+    serializer = VerHorarioSerializer(horarios, many=True)
+    return Response(serializer.data, status=200)
+
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def eliminar_profesor(request, idProfesor):
+    profesor = get_object_or_404(Profesor, idProfesor=idProfesor)
+    profesor.delete()
+    return Response({'mensaje': f'Profesor {idProfesor} eliminado'}, status=204)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def clases_hoy(request):
+    user = request.user
+    profesor = Profesor.objects.get(idUser=user)
+    print(profesor)
+    hoy = date.today()
+    print(hoy)
+    # Calcular lunes y domingo de la semana actual
+    hoy = datetime.date.today()  # weekday() lunes=0
+    horarios = Horario.objects.filter(
+        idProfesor=profesor,
+        fecha__gte=hoy,
+        fecha__lte=hoy
+    ).select_related('idAsignatura', 'idCurso', 'idAula', 'idDia', 'idFranja'
+    ).order_by('fecha', 'idFranja__numeroFranja')
+    resultado = [
+        {
+            'asignatura': h.idAsignatura.nombre,
+            'curso': h.idCurso.nombre,
+            'aula': h.idAula.nombre,
+            'dia': h.idDia.nombre,
+            'franja': h.idFranja.numeroFranja,
+            'fecha': h.fecha.strftime('%d/%m/%Y'),
+            'hora': h.idFranja.horaInicio.strftime('%H:%M')
+        }
+        for h in horarios
+    ]
+
+    return JsonResponse(resultado, safe=False)

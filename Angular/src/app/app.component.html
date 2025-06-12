@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
   <div class="container-fluid">
-    <a class="navbar-brand" routerLink="/">Logo</a>
+    <a class="navbar-brand" routerLink="/" >Inicio</a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
       <span class="navbar-toggler-icon"></span>
@@ -21,6 +21,10 @@
         <!-- Solo visible si está logueado -->
         <li class="nav-item" *ngIf="isLoggedIn()">
           <a class="nav-link active" routerLink="/horario">Consultar horario</a>
+        </li>
+
+        <li class="nav-item" *ngIf="isLoggedIn()">
+          <a class="nav-link active" routerLink="verHorariosCompleto">Consultar horarios completos</a>
         </li>
 
         <li class="nav-item" *ngIf="isLoggedIn()">

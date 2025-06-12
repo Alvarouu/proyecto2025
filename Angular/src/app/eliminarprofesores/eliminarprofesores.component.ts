@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { TokenService } from '../services/tokenStorage/token-service.service';
 import { tap } from 'rxjs';
+import * as Constant from '../constant'
 
 @Component({
   selector: 'app-eliminar',
@@ -17,6 +18,8 @@ export class EliminarComponent implements OnInit {
   paginaActual: number = 1;
   elementosPorPagina: number = 13;
   totalPaginas: number = 1;
+  private url = Constant.baseUrl
+  private eliminar = Constant.baseUrl + 'api/profesores/'
 
   constructor(private http: HttpClient, private tokenService: TokenService) { }
 
@@ -37,7 +40,7 @@ export class EliminarComponent implements OnInit {
       'Authorization': `Token ${token}`
     });
 
-    this.http.get<any>('http://127.0.0.1:8000/profesores/', { headers }).subscribe({
+    this.http.get<any>(this.url + 'profesores/', { headers }).subscribe({
       next: (data) => {
         console.log('Profesores obtenidos (RAW):', data);
         this.profesores = data;
@@ -58,7 +61,7 @@ export class EliminarComponent implements OnInit {
         'Authorization': `Token ${token}`
       });
 
-      this.http.delete(`http://127.0.0.1:8000/profesores/${id}/`, { headers }).subscribe({
+      this.http.delete(this.eliminar + `${id}/`, { headers }).subscribe({
         next: () => {
           alert('Profesor eliminado');
           this.obtenerProfesores();
